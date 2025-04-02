@@ -8,19 +8,6 @@ from transversal import Transversal
 from hyperflow import Spinor
 from manifold_visualizer import ManifoldVisualizer
 
-# Set up
-transversal = Transversal(manifold)
-
-# Run the full loop
-start_id = node_a.static_id
-origin_spinor = Spinor([0.5, 0.5, 0.5, 0.5, 0.5])
-transversal.ssrl_loop(start_id=start_id, steps=5)
-
-# Visualize
-viz = ManifoldVisualizer(manifold)
-viz.draw()
-
-
 
 # Initialize system
 origin_spinor = Spinor([1.0, 0.5, 0.0, 0.0, 0.0])

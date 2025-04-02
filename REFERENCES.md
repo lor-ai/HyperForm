@@ -1,15 +1,4 @@
 ## Research / Framework References
-
-PathRAG: Pruning Graph-based Retrieval Aug (2025)
-https://arxiv.org/pdf/2502.14902
-
-RGL: A Graph-Centric, Modular Framework for Efficient
-Retrieval-Augmented Generation on Graphs (2025)
-https://arxiv.org/pdf/2503.19314v1
-
-Extracting Interpretable Logic Rules from Graph Neural Networks (2025)
-https://arxiv.org/pdf/2503.19476
-
 Generalized Holographic Reduced Representations (2024)
 https://arxiv.org/pdf/2405.09689
 
@@ -29,6 +18,16 @@ https://arxiv.org/pdf/2503.21223v1
 
 BriLLM: Brain-inspired Large Language Model (2025)
 https://arxiv.org/pdf/2503.11299
+
+PathRAG: Pruning Graph-based Retrieval Aug (2025)
+https://arxiv.org/pdf/2502.14902
+
+RGL: A Graph-Centric, Modular Framework for Efficient
+Retrieval-Augmented Generation on Graphs (2025)
+https://arxiv.org/pdf/2503.19314v1
+
+Extracting Interpretable Logic Rules from Graph Neural Networks (2025)
+https://arxiv.org/pdf/2503.19476
 
 Hyperdimensional Computing with Spiking-Phasor Neurons (2023)
 https://arxiv.org/pdf/2303.00066

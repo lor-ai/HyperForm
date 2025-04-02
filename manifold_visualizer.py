@@ -3,9 +3,8 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseEvent
-from hyperflow import HyperFlow
+from hyperflow import HyperFlow, Spinor
 from manifold import Manifold
-from spinor import Spinor
 import random
 
 class ManifoldVisualizer:
