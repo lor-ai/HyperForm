@@ -1,10 +1,14 @@
-# demo_flow.py
-
+# demo_flow_orig.py
 
 from hyperflow import HyperFlow, Spinor
 from manifold import Manifold
 from transversal import Transversal
 from manifold_visualizer import ManifoldVisualizer
+from manifold_debugger import generate_debug_manifold
+
+manifold = generate_debug_manifold(seed=1337, depth=30)
+transversal = Transversal(manifold)
+
 
 # Initialize manifold and transversal system
 manifold = Manifold()
