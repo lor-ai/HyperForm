@@ -129,7 +129,12 @@ def generate_dashboard(summaries, output="run_logs/dashboard.html"):
     Path(output).parent.mkdir(parents=True, exist_ok=True)
     with open(output, "w") as f:
         f.write(html)
-    print(f"Dashboard written to {output}")
+    img_name = output.replace(".html", ".png")
+    if Path(img_name).exists():
+        html = html.replace("</body>", f'<h2>Δ Lineage Graph</h2><img src="{Path(img_name).name}" width="600"/></body>')
+        with open(output, "w") as f:
+            f.write(html)
+        print(f"Dashboard written to {output} (with embedded lineage graph)")
 
 import networkx as nx
 import matplotlib.pyplot as plt
