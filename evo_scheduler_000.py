@@ -81,15 +81,18 @@ def evolutionary_schedule():
                         super().__init__()
                         self.encoder = torch.nn.Linear(DELTA_DIM, 128)
                         self.decoder = torch.nn.Linear(128, 1)
-                        self.memory = torch.nn.Parameter(torch.randn(DELTA_DIM), requires_grad=True)  # now trainable
+                        self.memory = torch.nn.Parameter(torch.randn(DELTA_DIM), requires_grad=True)
+                        self.decay_rate = 0.01  # time-sensitive decay per forward  # now trainable
                     def forward(self, x):
+                        # decay memory slightly
+                        self.memory.data = self.memory.data * (1.0 - self.decay_rate)
                         x_encoded = torch.relu(self.encoder(x))
                         x_mem = x_encoded + self.memory[:x_encoded.shape[1]]  # combine with memory
                         return self.decoder(x_mem)
-                model = RealisticModel()
-                apply_to_model(model, delta_vec)
-                model.embed_memory(delta_vec)
-                print(f"Injected best Δ into RealisticModel from {best['run_id']}")
+                    model = RealisticModel()
+                    apply_to_model(model, delta_vec)
+                    model.embed_memory(delta_vec)
+                    print(f"Injected best Δ into RealisticModel from {best['run_id']}")
             except Exception as e:
                 print(f"[WARN] PyTorch injection failed: {e}")
         summaries.sort(key=evaluate_fitness, reverse=True)
