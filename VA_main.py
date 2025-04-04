@@ -151,12 +151,35 @@ class Manifold:
         pca = PCA(n_components=2)
         vectors = [s.vector for s in self.delta.transition_log]
         reduced = pca.fit_transform(vectors)
-        plt.figure(figsize=(6, 6))
-        plt.plot(reduced[:, 0], reduced[:, 1], marker='o', linestyle='-', color='purple')
+        plt.figure(figsize=(8, 6))
+        colors = np.linspace(0, 1, len(reduced))
+        for i in range(1, len(reduced)):
+            plt.plot([reduced[i-1, 0], reduced[i, 0]],
+                     [reduced[i-1, 1], reduced[i, 1]],
+                     color=plt.cm.viridis(colors[i]), linewidth=2)
+        plt.scatter(reduced[:, 0], reduced[:, 1], c=colors, cmap='viridis', s=50, edgecolors='k')
         plt.title("Δ Transition Trajectory (Phase Space)")
         plt.xlabel("PCA 1")
         plt.ylabel("PCA 2")
+        plt.colorbar(label="Time Step")
         plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    def visualize_density(self):
+        vectors = [flow.spinor.vector for flow in self.flows]
+        if len(vectors) < 2:
+            print("Insufficient flows for density visualization.")
+            return
+        pca = PCA(n_components=2)
+        reduced = pca.fit_transform(vectors)
+        x, y = reduced[:, 0], reduced[:, 1]
+        plt.figure(figsize=(6, 5))
+        plt.hist2d(x, y, bins=30, cmap='magma')
+        plt.colorbar(label='Flow Density')
+        plt.title("Flow Density in PCA Space")
+        plt.xlabel("PCA 1")
+        plt.ylabel("PCA 2")
         plt.tight_layout()
         plt.show()
 
