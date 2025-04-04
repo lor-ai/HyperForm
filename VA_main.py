@@ -76,6 +76,8 @@ class Manifold:
     def tick(self, flow):
         flow.update_sentiment(self.delta)
         flow.update_surprise(self.delta)
+        for attractor in self.latent_attractors:
+            flow.spinor = flow.spinor.bind(attractor.spinor)  # bias flow toward attractor
         self.delta.rotate(flow.spinor)
         self.flows.append(flow)
         if flow.surprise < 0.2:
