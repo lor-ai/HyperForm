@@ -96,6 +96,7 @@ def evolutionary_schedule():
             except Exception as e:
                 print(f"[WARN] PyTorch injection failed: {e}")
         summaries.sort(key=evaluate_fitness, reverse=True)
+        plot_memory_embeddings(summaries, output=f"run_logs/memory_projection_{prefix}.png")
 
         top = summaries[:2]  # take top 2
         parents = [np.load(f"run_logs/{s['run_id']}/delta_weights.npy") for s in top]
@@ -167,6 +168,35 @@ def plot_lineage_graph(summaries, output="run_logs/lineage_graph.png"):
     plt.savefig(output)
     plt.close()
     print(f"Lineage graph saved to {output}")
+
+from sklearn.decomposition import PCA
+
+def plot_memory_embeddings(summaries, output="run_logs/memory_projection.png"):
+    import matplotlib.pyplot as plt
+    memory_vectors = []
+    labels = []
+    for s in summaries:
+        vec_path = Path("run_logs") / s["run_id"] / "delta_weights.npy"
+        if vec_path.exists():
+            memory_vectors.append(np.load(vec_path))
+            labels.append(s["run_id"])
+    if len(memory_vectors) < 2:
+        print("Not enough memory vectors to project.")
+        return
+    pca = PCA(n_components=2)
+    reduced = pca.fit_transform(memory_vectors)
+    plt.figure(figsize=(7, 5))
+    for i, label in enumerate(labels):
+        plt.scatter(reduced[i, 0], reduced[i, 1], label=label)
+        plt.text(reduced[i, 0], reduced[i, 1] + 0.01, label, fontsize=8, ha='center')
+    plt.title("Δ Memory Embedding Space")
+    plt.xlabel("PCA 1")
+    plt.ylabel("PCA 2")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(output)
+    plt.close()
+    print(f"Memory projection saved to {output}")
 
 if __name__ == "__main__":
     evolutionary_schedule()
