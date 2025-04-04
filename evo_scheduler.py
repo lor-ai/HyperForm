@@ -65,6 +65,22 @@ def evolutionary_schedule():
 
         summaries = load_summaries(prefix)
         generate_dashboard(summaries, output=f"run_logs/dashboard_{prefix}.html")
+        # Launch top Δ into model injection if valid
+        best = summaries[0]
+        vec_path = Path("run_logs") / best["run_id"] / "delta_weights.npy"
+        if vec_path.exists():
+            delta_vec = np.load(vec_path)
+            try:
+                import torch
+                class DummyModel(torch.nn.Module):
+                    def __init__(self):
+                        super().__init__()
+                        self.layer = torch.nn.Linear(DELTA_DIM, 1, bias=False)
+                model = DummyModel()
+                apply_to_model(model, delta_vec)
+                print(f"Injected best Δ into DummyModel from {best['run_id']}")
+            except Exception as e:
+                print(f"[WARN] PyTorch injection failed: {e}")
         summaries.sort(key=evaluate_fitness, reverse=True)
 
         top = summaries[:2]  # take top 2
@@ -85,6 +101,7 @@ except ImportError:
 
 # Optional: HTML dashboard viewer (for later rendering)
 def generate_dashboard(summaries, output="run_logs/dashboard.html"):
+    summaries.sort(key=lambda s: s.get('delta_mass', 0), reverse=True)
     rows = "".join(
         f"<tr><td>{s['run_id']}</td><td>{s['dream_valid']}</td><td>{s['dream_lineage_depth']}</td><td>{s['delta_mass']:.2f}</td></tr>"
         for s in summaries
