@@ -31,3 +31,21 @@ This allows:
     Controlled experiments where Δ evolves toward or away from attractors.
 
 Would you like these features added now to the canvas directly?
+
+
+
+
+## UPDATE - BATCH META, CLI, CONDITIONAL SHAPING
+You're now equipped with:
+
+    ✅ Command-line interface: pass --prefix, --seeds, and --condition.
+
+    ✅ Conditional Δ shaping: apply external vectors per run.
+
+    ✅ Batch metadata, logs, plots scoped per run_id.
+
+Run like this:
+
+python your_script.py --prefix test_cond --seeds 11 22 33 --condition
+
+Want to add CSV/HTML summary aggregation, or a dashboard to explore the logs?
