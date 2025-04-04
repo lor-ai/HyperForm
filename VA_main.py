@@ -220,4 +220,10 @@ if __name__ == "__main__":
     print("Δ transitions logged:", len(delta.transition_log))
 
     manifold.visualize()
+    manifold.visualize_density()
+    manifold.visualize_transitions()
+    plt.savefig("delta_transitions.png")
+    plt.close()
+    plt.savefig("flow_dynamics.png")
+    plt.close()
     manifold.visualize_transitions()
