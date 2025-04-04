@@ -51,8 +51,12 @@ def evolve_population(parents):
         new_population.append(child)
     return new_population
 
+def compare_memory_shift(current_vec, previous_vec):
+    return np.linalg.norm(current_vec - previous_vec)
+
 def evolutionary_schedule():
     current_vectors = [BASE_VECTOR + np.random.randn(DELTA_DIM) * 0.1 for _ in range(POPULATION_SIZE)]
+    previous_best_vec = None
 
     for gen in range(NUM_GENERATIONS):
         print(f"\n===== Generation {gen} =====")
@@ -71,6 +75,10 @@ def evolutionary_schedule():
         vec_path = Path("run_logs") / best["run_id"] / "delta_weights.npy"
         if vec_path.exists():
             delta_vec = np.load(vec_path)
+            if previous_best_vec is not None:
+                shift = compare_memory_shift(delta_vec, previous_best_vec)
+                print(f"Δ memory shift from previous best: {shift:.4f}")
+            previous_best_vec = delta_vec.copy()
             try:
                 import torch
                 class RealisticModel(torch.nn.Module):
@@ -92,7 +100,8 @@ def evolutionary_schedule():
                     model = RealisticModel()
                     apply_to_model(model, delta_vec)
                     model.embed_memory(delta_vec)
-                    print(f"Injected best Δ into RealisticModel from {best['run_id']}")
+                    output_sample = model(torch.ones(1, DELTA_DIM)).item()
+                    print(f"Injected best Δ into RealisticModel from {best['run_id']} | Output: {output_sample:.4f}")
             except Exception as e:
                 print(f"[WARN] PyTorch injection failed: {e}")
         summaries.sort(key=evaluate_fitness, reverse=True)
@@ -126,7 +135,8 @@ def generate_dashboard(summaries, output="run_logs/dashboard.html"):
         for s in summaries
     )
     mem_img = output.replace(".html", ".png").replace("dashboard_", "memory_projection_")
-    mem_embed_html = f'<h2>Δ Memory Embedding</h2><img src="{Path(mem_img).name}" width="600"/>' if Path(mem_img).exists() else ""
+    mem_gif = mem_img.replace(".png", ".gif")
+    mem_embed_html = f'<h2>Δ Memory Embedding</h2><img src="{Path(mem_gif).name}" width="600"/>' if Path(mem_gif).exists() else ""
     html = f"""
     <html><head><title>Δ Evolution Dashboard</title></head><body>
     <h1>Δ Evolution Results</h1>
@@ -168,12 +178,41 @@ def plot_lineage_graph(summaries, output="run_logs/lineage_graph.png"):
     plt.title("Δ Lineage Graph")
     plt.tight_layout()
     plt.savefig(output)
+
+    # Generate animation
+    fig, ax = plt.subplots(figsize=(7, 5))
+    scat = ax.scatter([], [])
+    text_annotations = []
+    def init():
+        ax.set_xlim(min(reduced[:, 0]) - 0.1, max(reduced[:, 0]) + 0.1)
+        ax.set_ylim(min(reduced[:, 1]) - 0.1, max(reduced[:, 1]) + 0.1)
+        ax.set_title("Δ Memory Evolution Animation")
+        return scat,
+
+    def update(frame):
+        ax.clear()
+        ax.set_xlim(min(reduced[:, 0]) - 0.1, max(reduced[:, 0]) + 0.1)
+        ax.set_ylim(min(reduced[:, 1]) - 0.1, max(reduced[:, 1]) + 0.1)
+        ax.set_title("Δ Memory Evolution Animation")
+        ax.scatter(reduced[:frame+1, 0], reduced[:frame+1, 1], color='purple')
+        for i in range(frame + 1):
+            ax.text(reduced[i, 0], reduced[i, 1] + 0.02, labels[i], fontsize=7, ha='center')
+        return ax,
+
+    ani = animation.FuncAnimation(fig, update, frames=len(reduced), init_func=init, blit=False, repeat=False)
+    anim_path = output.replace(".png", ".gif")
+    ani.save(anim_path, writer="pillow", fps=1)
+    print(f"Memory animation saved to {anim_path}")
     plt.close()
     print(f"Lineage graph saved to {output}")
 
 from sklearn.decomposition import PCA
 
+from matplotlib import animation
+
 def plot_memory_embeddings(summaries, output="run_logs/memory_projection.png"):
+    import matplotlib.pyplot as plt
+    from IPython.display import HTML
     import matplotlib.pyplot as plt
     memory_vectors = []
     labels = []
@@ -183,6 +222,7 @@ def plot_memory_embeddings(summaries, output="run_logs/memory_projection.png"):
             memory_vectors.append(np.load(vec_path))
             labels.append(s["run_id"])
     if len(memory_vectors) < 2:
+        return
         print("Not enough memory vectors to project.")
         return
     pca = PCA(n_components=2)
