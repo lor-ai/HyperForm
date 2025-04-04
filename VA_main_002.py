@@ -220,14 +220,19 @@ def save_plot(prefix):
 
 import json
 
-def batch_run(seed_list, run_prefix="hyperrun"):
+import argparse
+
+
+def batch_run(seed_list, run_prefix="hyperrun", delta_conditions=None):
     for i, seed in enumerate(seed_list):
         run_id = f"{run_prefix}_{i:02d}"
-        print(f" --- Starting batch run: {run_id} (seed={seed}) ---")
+        print(f"--- Starting batch run: {run_id} (seed={seed}) ---")
         save_plot, log_dir = run_simulation(run_id)
         np.random.seed(seed)
         base_spinor = Spinor(np.random.randn(512))
         delta = Delta(base_spinor)
+        if delta_conditions and i in delta_conditions:
+            delta.condition(delta_conditions[i], weight=0.7)
         manifold = Manifold(delta)
 
         for _ in range(10):
@@ -273,6 +278,21 @@ def batch_run(seed_list, run_prefix="hyperrun"):
         save_plot("delta_transitions")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--prefix", default="batch_test")
+    parser.add_argument("--seeds", nargs="*", type=int, default=[42, 101, 202, 303])
+    parser.add_argument("--condition", action="store_true")
+    args = parser.parse_args()
+
+    # Optional conditioning
+    conditions = None
+    if args.condition:
+        vector = np.ones(512) * 0.5
+        conditions = {i: vector for i in range(len(args.seeds))}
+
+    batch_run(seed_list=args.seeds, run_prefix=args.prefix, delta_conditions=conditions)
+
+    # Default single-run fallback (optional)
     batch_run(seed_list=[42, 101, 202, 303], run_prefix="batch_test")
     save_plot, log_dir = run_simulation("hyperrun")
     np.random.seed(42)
