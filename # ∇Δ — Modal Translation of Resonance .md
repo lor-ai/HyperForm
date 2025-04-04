@@ -110,6 +110,18 @@ The system now includes enhanced Spinor logic with geometric modulation (cos·si
     Latent attractors recorded in manifold.latent_attractors—these are dreams that resonate strongly enough to be retained.
 
 Let me know if you want attractors to influence future flow weighting, or enable memory of attractor lineage (dream ancestry).
+You said:
+yes both
+ChatGPT said:
 
+Dreams now retain their lineage (flow.lineage) and persist as latent attractors in the manifold. You can:
 
-ChatGPT can make mistakes. Check important info.
+    Inspect attractors for their ancestry,
+
+    Evolve future flows biased toward their curvature,
+
+    Or visualize attractor influence on Δ in subsequent steps.
+
+Ready to project attractors forward or generate competing trajectories?
+You said:
+I am ready
