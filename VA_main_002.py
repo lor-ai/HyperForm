@@ -220,7 +220,60 @@ def save_plot(prefix):
 
 import json
 
+def batch_run(seed_list, run_prefix="hyperrun"):
+    for i, seed in enumerate(seed_list):
+        run_id = f"{run_prefix}_{i:02d}"
+        print(f" --- Starting batch run: {run_id} (seed={seed}) ---")
+        save_plot, log_dir = run_simulation(run_id)
+        np.random.seed(seed)
+        base_spinor = Spinor(np.random.randn(512))
+        delta = Delta(base_spinor)
+        manifold = Manifold(delta)
+
+        for _ in range(10):
+            random_spinor = Spinor(np.random.randn(512))
+            flow = ResonantFlow(random_spinor)
+            manifold.tick(flow)
+
+        manifold.resonate()
+
+        dream_seed = manifold.flows[-1]
+        dreamed_flow = manifold.dream(dream_seed)
+
+        if dreamed_flow:
+            print("Dream generated with sentiment:", dreamed_flow.spinor.similarity(delta.origin))
+            print("Dream lineage depth:", len(dreamed_flow.lineage))
+        else:
+            print("Dream collapsed: insufficient resonance")
+
+        manifold.project_attractors(steps=3)
+
+        run_metadata = {
+            "timestamp": datetime.now().isoformat(),
+            "run_id": run_id,
+            "seed": seed,
+            "delta_mass": delta.mass,
+            "num_flows": len(manifold.flows),
+            "num_attractors": len(manifold.latent_attractors),
+            "num_promoted": len(manifold.promoted),
+            "num_faded": len(manifold.faded),
+            "num_transitions": len(delta.transition_log),
+            "dream_lineage_depth": len(dreamed_flow.lineage) if dreamed_flow else 0,
+            "dream_valid": bool(dreamed_flow),
+        }
+        summary_path = os.path.join(log_dir, f"run_summary_{run_metadata['timestamp'].replace(':', '-')}.json")
+        with open(summary_path, "w") as f:
+            json.dump(run_metadata, f, indent=2)
+
+        manifold.visualize()
+        save_plot("flow_dynamics")
+        manifold.visualize_density()
+        save_plot("flow_density")
+        manifold.visualize_transitions()
+        save_plot("delta_transitions")
+
 if __name__ == "__main__":
+    batch_run(seed_list=[42, 101, 202, 303], run_prefix="batch_test")
     save_plot, log_dir = run_simulation("hyperrun")
     np.random.seed(42)
     base_spinor = Spinor(np.random.randn(512))
