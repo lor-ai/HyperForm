@@ -156,7 +156,7 @@ class Manifold:
         plt.show()
 
     def visualize_transitions(self):
-        if not self.delta.transition_log:
+        if len(self.delta.transition_log) < 2:
             print("No Δ transitions recorded.")
             return
         pca = PCA(n_components=2)
@@ -179,6 +179,9 @@ class Manifold:
 
     def visualize_density(self):
         vectors = [flow.spinor.vector for flow in self.flows]
+        if len(vectors) < 2:
+            print("Need at least 2 flows to estimate density.")
+            return
         if len(vectors) < 2:
             print("Insufficient flows for density visualization.")
             return
