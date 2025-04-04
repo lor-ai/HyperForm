@@ -199,6 +199,18 @@ import os
 from datetime import datetime
 
 # --- Simulation Logging and Versioned Artifact Output ---
+def run_simulation(run_id="default"):
+    log_dir = f"run_logs/{run_id}"
+    os.makedirs(log_dir, exist_ok=True)
+
+    def save_plot(prefix):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        version = len([f for f in os.listdir(log_dir) if f.startswith(prefix)]) + 1
+        filename = f"{prefix}_v{version:02d}_{timestamp}.png"
+        plt.savefig(os.path.join(log_dir, filename))
+        plt.close()
+
+    return save_plot, log_dir
 def save_plot(prefix):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     version = len([f for f in os.listdir('.') if f.startswith(prefix)]) + 1
@@ -209,6 +221,7 @@ def save_plot(prefix):
 import json
 
 if __name__ == "__main__":
+    save_plot, log_dir = run_simulation("hyperrun")
     np.random.seed(42)
     base_spinor = Spinor(np.random.randn(512))
     delta = Delta(base_spinor)
@@ -254,7 +267,8 @@ if __name__ == "__main__":
         "dream_lineage_depth": len(dreamed_flow.lineage) if dreamed_flow else 0,
         "dream_valid": bool(dreamed_flow),
     }
-    with open(f"run_summary_{run_metadata['timestamp'].replace(':', '-')}.json", "w") as f:
+    summary_path = os.path.join(log_dir, f"run_summary_{run_metadata['timestamp'].replace(':', '-')}.json")
+    with open(summary_path, "w") as f:
         json.dump(run_metadata, f, indent=2)
         print("Run summary saved.")
 
