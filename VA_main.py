@@ -2,6 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 
 class Spinor:
     def __init__(self, vector):
@@ -29,7 +30,7 @@ class Delta:
         self.origin = svsa
         self.history = []
         self.mass = 1.0
-        self.transition_log = []  # track origin transitions
+        self.transition_log = []
 
     def rotate(self, spinor):
         projection = self.origin.rotate(spinor)
@@ -143,6 +144,22 @@ class Manifold:
         plt.tight_layout()
         plt.show()
 
+    def visualize_transitions(self):
+        if not self.delta.transition_log:
+            print("No Δ transitions recorded.")
+            return
+        pca = PCA(n_components=2)
+        vectors = [s.vector for s in self.delta.transition_log]
+        reduced = pca.fit_transform(vectors)
+        plt.figure(figsize=(6, 6))
+        plt.plot(reduced[:, 0], reduced[:, 1], marker='o', linestyle='-', color='purple')
+        plt.title("Δ Transition Trajectory (Phase Space)")
+        plt.xlabel("PCA 1")
+        plt.ylabel("PCA 2")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
 
 # --- Simulation ---
 if __name__ == "__main__":
@@ -180,3 +197,4 @@ if __name__ == "__main__":
     print("Δ transitions logged:", len(delta.transition_log))
 
     manifold.visualize()
+    manifold.visualize_transitions()
