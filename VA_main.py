@@ -105,8 +105,7 @@ class Manifold:
         return dream_flow
 
     def project_attractors(self, steps=3):
-        """Project latent attractors forward into new speculative flows."""
-        for attractor in self.latent_attractors:
+        for attractor in self.latent_attractors[:]:
             current = attractor.spinor
             lineage = attractor.lineage[:]
             for _ in range(steps):
@@ -115,6 +114,11 @@ class Manifold:
                 self.tick(flow)
                 lineage.append(flow)
                 current = projected
+            # Optionally rebase delta around strong attractors
+            if attractor.sentiment > 0.9:
+                self.delta.origin = attractor.spinor  # promote to new Δ
+            elif attractor.sentiment < 0.5:
+                self.latent_attractors.remove(attractor)  # fade out
 
     def visualize(self):
         sentiments = [flow.sentiment for flow in self.flows]
@@ -163,7 +167,5 @@ if __name__ == "__main__":
     print("First flow sentiment:", manifold.flows[0].sentiment)
     print("Last flow surprise:", manifold.flows[-1].surprise)
 
-    # Project from attractors
     manifold.project_attractors(steps=3)
-
     manifold.visualize()
