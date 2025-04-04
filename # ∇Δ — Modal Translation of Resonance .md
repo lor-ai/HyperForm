@@ -139,3 +139,21 @@ You now have an evolutionary scheduler scaffold:
 This can be directly integrated with your batch run by ensuring python your_script.py accepts --condition and loads delta_conditions.
 
 Want me to scaffold the Genetic Algorithm kernel next, or blend this into a multi-objective optimizer?
+
+🧬 The Genetic Algorithm Kernel is live in Genetic Kernel. It supports:
+
+    Fitness-driven evolution using saved .npy vectors.
+
+    Elitism + crossover + mutation.
+
+    External batch launching via CLI (your_script.py).
+
+    Automatic population transition via vector logs.
+
+Let me know if you'd like:
+
+    PyTorch integration to apply Δ vectors to models.
+
+    A dashboard-style HTML viewer for GA results.
+
+    Or merging GA with the previous evolutionary scheduler.
