@@ -64,11 +64,44 @@ def evolutionary_schedule():
         os.system(f"python your_script.py --prefix {prefix} --seeds {' '.join(map(str, seeds))} --condition")
 
         summaries = load_summaries(prefix)
+        generate_dashboard(summaries, output=f"run_logs/dashboard_{prefix}.html")
         summaries.sort(key=evaluate_fitness, reverse=True)
 
         top = summaries[:2]  # take top 2
         parents = [np.load(f"run_logs/{s['run_id']}/delta_weights.npy") for s in top]
         current_vectors = evolve_population(parents)
+
+# Optional: PyTorch injection interface
+try:
+    import torch
+    def apply_to_model(model, delta_vector):
+        with torch.no_grad():
+            for name, param in model.named_parameters():
+                if param.data.ndim == 2 and param.shape[1] == DELTA_DIM:
+                    param.copy_(torch.tensor(delta_vector).reshape(1, -1).expand_as(param))
+                    break
+except ImportError:
+    print("PyTorch not available — skipping model injection helper.")
+
+# Optional: HTML dashboard viewer (for later rendering)
+def generate_dashboard(summaries, output="run_logs/dashboard.html"):
+    rows = "".join(
+        f"<tr><td>{s['run_id']}</td><td>{s['dream_valid']}</td><td>{s['dream_lineage_depth']}</td><td>{s['delta_mass']:.2f}</td></tr>"
+        for s in summaries
+    )
+    html = f"""
+    <html><head><title>Δ Evolution Dashboard</title></head><body>
+    <h1>Δ Evolution Results</h1>
+    <table border='1'>
+        <tr><th>Run ID</th><th>Valid Dream</th><th>Lineage Depth</th><th>Δ Mass</th></tr>
+        {rows}
+    </table>
+    </body></html>
+    """
+    Path(output).parent.mkdir(parents=True, exist_ok=True)
+    with open(output, "w") as f:
+        f.write(html)
+    print(f"Dashboard written to {output}")
 
 if __name__ == "__main__":
     evolutionary_schedule()
