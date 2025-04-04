@@ -104,12 +104,19 @@ except ImportError:
 
 # Optional: HTML dashboard viewer (for later rendering)
 def generate_dashboard(summaries, output="run_logs/dashboard.html"):
+    lineage_paths = "".join(
+        f"<li>{s['run_id']} → Δ mass: {s['delta_mass']:.2f}, depth: {s['dream_lineage_depth']}</li>"
+        for s in sorted(summaries, key=lambda s: s.get('delta_mass', 0), reverse=True)
+    )
     summaries.sort(key=lambda s: s.get('delta_mass', 0), reverse=True)
     rows = "".join(
         f"<tr><td>{s['run_id']}</td><td>{s['dream_valid']}</td><td>{s['dream_lineage_depth']}</td><td>{s['delta_mass']:.2f}</td></tr>"
         for s in summaries
     )
     html = f"""
+    <html><head><title>Δ Evolution Dashboard</title></head><body>
+    <h1>Δ Evolution Results</h1>
+    <ul>{lineage_paths}</ul>
     <html><head><title>Δ Evolution Dashboard</title></head><body>
     <h1>Δ Evolution Results</h1>
     <table border='1'>
