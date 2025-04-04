@@ -104,6 +104,18 @@ class Manifold:
         self.latent_attractors.append(dream_flow)
         return dream_flow
 
+    def project_attractors(self, steps=3):
+        """Project latent attractors forward into new speculative flows."""
+        for attractor in self.latent_attractors:
+            current = attractor.spinor
+            lineage = attractor.lineage[:]
+            for _ in range(steps):
+                projected = current.permute().rotate(self.delta.origin)
+                flow = ResonantFlow(projected, lineage=lineage[:])
+                self.tick(flow)
+                lineage.append(flow)
+                current = projected
+
     def visualize(self):
         sentiments = [flow.sentiment for flow in self.flows]
         surprises = [flow.surprise for flow in self.flows]
@@ -150,5 +162,8 @@ if __name__ == "__main__":
     print("Delta origin (truncated):", delta.origin.vector[:5])
     print("First flow sentiment:", manifold.flows[0].sentiment)
     print("Last flow surprise:", manifold.flows[-1].surprise)
+
+    # Project from attractors
+    manifold.project_attractors(steps=3)
 
     manifold.visualize()
