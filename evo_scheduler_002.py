@@ -135,97 +135,6 @@ def evolutionary_schedule():
         parents = [np.load(f"run_logs/{s['run_id']}/delta_weights.npy") for s in top]
         current_vectors = evolve_population(parents)
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--gens", type=int, default=NUM_GENERATIONS, help="Number of generations")
-    parser.add_argument("--pop", type=int, default=POPULATION_SIZE, help="Population size")
-    parser.add_argument("--animate", action="store_true", help="Enable memory animation")
-    parser.add_argument("--run_type", choices=["full", "static"], default="full", help="Type of evolution")
-    args = parser.parse_args()
-
-    NUM_GENERATIONS = args.gens
-    POPULATION_SIZE = args.pop
-
-    print(f"[INFO] Running {args.run_type} evolution for {NUM_GENERATIONS} generations")
-    
-    current_vectors = [BASE_VECTOR + np.random.randn(DELTA_DIM) * 0.1 for _ in range(POPULATION_SIZE)]
-    previous_best_vec = None
-
-    for gen in range(NUM_GENERATIONS):
-        print(f"\n===== Generation {gen} =====")
-        seeds = [1000 + gen * 10 + i for i in range(POPULATION_SIZE)]
-        delta_conditions = {i: current_vectors[i] for i in range(POPULATION_SIZE)}
-        prefix = f"evolve_gen{gen}"
-
-        # Run batch with conditions (requires integration with your batch_run)
-        os.system(f"python your_script.py --prefix {prefix} --seeds {' '.join(map(str, seeds))} --condition")
-
-        summaries = load_summaries(prefix)
-        generate_dashboard(summaries, output=f"run_logs/dashboard_{prefix}.html")
-        plot_lineage_graph(summaries, output=f"run_logs/lineage_graph_{prefix}.png")
-        # Launch top Δ into model injection if valid
-        best = summaries[0]
-        vec_path = Path("run_logs") / best["run_id"] / "delta_weights.npy"
-        if vec_path.exists():
-            delta_vec = np.load(vec_path)
-            if previous_best_vec is not None:
-                shift = compare_memory_shift(delta_vec, previous_best_vec)
-                print(f"Δ memory shift from previous best: {shift:.4f}")
-                log_event({
-                    "generation": gen,
-                    "run_id": best['run_id'],
-                    "memory_shift": round(shift, 4),
-                    "triggered_model_update": should_trigger_model_update(shift),
-                    "timestamp": datetime.now().isoformat()
-                })
-                if should_trigger_model_update(shift):
-                    print("Triggering model update: Δ memory shift exceeds threshold.")
-            previous_best_vec = delta_vec.copy()
-            try:
-                import torch
-                class RealisticModel(torch.nn.Module):
-                    def embed_memory(self, memory_vector):
-                        if hasattr(self, "memory"):
-                            self.memory.data.copy_(torch.tensor(memory_vector))
-                    def __init__(self):
-                        super().__init__()
-                        self.encoder = torch.nn.Linear(DELTA_DIM, 128)
-                        self.decoder = torch.nn.Linear(128, 1)
-                        self.memory = torch.nn.Parameter(torch.randn(DELTA_DIM), requires_grad=True)
-                        self.decay_rate = 0.01  # time-sensitive decay per forward  # now trainable
-                    def forward(self, x):
-                        # decay memory slightly
-                        self.memory.data = self.memory.data * (1.0 - self.decay_rate)
-                        x_encoded = torch.relu(self.encoder(x))
-                        x_mem = x_encoded + self.memory[:x_encoded.shape[1]]  # combine with memory
-                        return self.decoder(x_mem)
-                    model = RealisticModel()
-                    apply_to_model(model, delta_vec)
-                    model.embed_memory(delta_vec)
-                    output_sample = model(torch.ones(1, DELTA_DIM)).item()
-                    print(f"Injected best Δ into RealisticModel from {best['run_id']} | Output: {output_sample:.4f}")
-            except Exception as e:
-                print(f"[WARN] PyTorch injection failed: {e}")
-        summaries.sort(key=evaluate_fitness, reverse=True)
-        plot_memory_embeddings(summaries, output=f"run_logs/memory_projection_{prefix}.png")
-
-        top = summaries[:2]  # take top 2
-        parents = [np.load(f"run_logs/{s['run_id']}/delta_weights.npy") for s in top]
-        current_vectors = evolve_population(parents)
-
-# Optional: PyTorch injection interface
-try:
-    import torch
-    def apply_to_model(model, delta_vector):
-        with torch.no_grad():
-            for name, param in model.named_parameters():
-                if param.data.ndim == 2 and param.shape[1] == DELTA_DIM:
-                    param.copy_(torch.tensor(delta_vector).reshape(1, -1).expand_as(param))
-                    break
-except ImportError:
-    print("PyTorch not available — skipping model injection helper.")
-
 # Optional: HTML dashboard viewer (for later rendering)
 def generate_dashboard(summaries, output="run_logs/dashboard.html"):
     lineage_paths = "".join(
@@ -322,3 +231,92 @@ def plot_memory_embeddings(summaries, output="run_logs/memory_projection.png"):
 import argparse
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gens", type=int, default=NUM_GENERATIONS, help="Number of generations")
+    parser.add_argument("--pop", type=int, default=POPULATION_SIZE, help="Population size")
+    parser.add_argument("--animate", action="store_true", help="Enable memory animation")
+    parser.add_argument("--run_type", choices=["full", "static"], default="full", help="Type of evolution")
+    args = parser.parse_args()
+
+    NUM_GENERATIONS = args.gens
+    POPULATION_SIZE = args.pop
+
+    print(f"[INFO] Running {args.run_type} evolution for {NUM_GENERATIONS} generations")
+    
+    current_vectors = [BASE_VECTOR + np.random.randn(DELTA_DIM) * 0.1 for _ in range(POPULATION_SIZE)]
+    previous_best_vec = None
+
+    for gen in range(NUM_GENERATIONS):
+        print(f"\n===== Generation {gen} =====")
+        seeds = [1000 + gen * 10 + i for i in range(POPULATION_SIZE)]
+        delta_conditions = {i: current_vectors[i] for i in range(POPULATION_SIZE)}
+        prefix = f"evolve_gen{gen}"
+
+        # Run batch with conditions (requires integration with your batch_run)
+        os.system(f"python your_script.py --prefix {prefix} --seeds {' '.join(map(str, seeds))} --condition")
+
+        summaries = load_summaries(prefix)
+        generate_dashboard(summaries, output=f"run_logs/dashboard_{prefix}.html")
+        plot_lineage_graph(summaries, output=f"run_logs/lineage_graph_{prefix}.png")
+        # Launch top Δ into model injection if valid
+        best = summaries[0]
+        vec_path = Path("run_logs") / best["run_id"] / "delta_weights.npy"
+        if vec_path.exists():
+            delta_vec = np.load(vec_path)
+            if previous_best_vec is not None:
+                shift = compare_memory_shift(delta_vec, previous_best_vec)
+                print(f"Δ memory shift from previous best: {shift:.4f}")
+                log_event({
+                    "generation": gen,
+                    "run_id": best['run_id'],
+                    "memory_shift": round(shift, 4),
+                    "triggered_model_update": should_trigger_model_update(shift),
+                    "timestamp": datetime.now().isoformat()
+                })
+                if should_trigger_model_update(shift):
+                    print("Triggering model update: Δ memory shift exceeds threshold.")
+            previous_best_vec = delta_vec.copy()
+            try:
+                import torch
+                class RealisticModel(torch.nn.Module):
+                    def embed_memory(self, memory_vector):
+                        if hasattr(self, "memory"):
+                            self.memory.data.copy_(torch.tensor(memory_vector))
+                    def __init__(self):
+                        super().__init__()
+                        self.encoder = torch.nn.Linear(DELTA_DIM, 128)
+                        self.decoder = torch.nn.Linear(128, 1)
+                        self.memory = torch.nn.Parameter(torch.randn(DELTA_DIM), requires_grad=True)
+                        self.decay_rate = 0.01  # time-sensitive decay per forward  # now trainable
+                    def forward(self, x):
+                        # decay memory slightly
+                        self.memory.data = self.memory.data * (1.0 - self.decay_rate)
+                        x_encoded = torch.relu(self.encoder(x))
+                        x_mem = x_encoded + self.memory[:x_encoded.shape[1]]  # combine with memory
+                        return self.decoder(x_mem)
+                    model = RealisticModel()
+                    apply_to_model(model, delta_vec)
+                    model.embed_memory(delta_vec)
+                    output_sample = model(torch.ones(1, DELTA_DIM)).item()
+                    print(f"Injected best Δ into RealisticModel from {best['run_id']} | Output: {output_sample:.4f}")
+            except Exception as e:
+                print(f"[WARN] PyTorch injection failed: {e}")
+        summaries.sort(key=evaluate_fitness, reverse=True)
+        plot_memory_embeddings(summaries, output=f"run_logs/memory_projection_{prefix}.png")
+
+        top = summaries[:2]  # take top 2
+        parents = [np.load(f"run_logs/{s['run_id']}/delta_weights.npy") for s in top]
+        current_vectors = evolve_population(parents)
+
+# Optional: PyTorch injection interface
+try:
+    import torch
+    def apply_to_model(model, delta_vector):
+        with torch.no_grad():
+            for name, param in model.named_parameters():
+                if param.data.ndim == 2 and param.shape[1] == DELTA_DIM:
+                    param.copy_(torch.tensor(delta_vector).reshape(1, -1).expand_as(param))
+                    break
+except ImportError:
+    print("PyTorch not available — skipping model injection helper.")
