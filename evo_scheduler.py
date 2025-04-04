@@ -39,11 +39,15 @@ def load_summaries(run_prefix):
 def mutate_vector(vec, std=MUTATION_STD):
     return vec + np.random.randn(len(vec)) * std
 
+def blend_vectors(vectors):
+    weights = np.random.dirichlet(np.ones(len(vectors)))
+    return sum(w * v for w, v in zip(weights, vectors))
+
 def evolve_population(parents):
     new_population = []
     for i in range(POPULATION_SIZE):
         p1, p2 = np.random.choice(parents, 2, replace=True)
-        child = 0.5 * (p1 + p2) + np.random.randn(DELTA_DIM) * MUTATION_STD
+        child = blend_vectors([p1, p2]) + np.random.randn(DELTA_DIM) * MUTATION_STD
         new_population.append(child)
     return new_population
 
