@@ -72,13 +72,16 @@ def evolutionary_schedule():
             delta_vec = np.load(vec_path)
             try:
                 import torch
-                class DummyModel(torch.nn.Module):
+                class RealisticModel(torch.nn.Module):
                     def __init__(self):
                         super().__init__()
-                        self.layer = torch.nn.Linear(DELTA_DIM, 1, bias=False)
-                model = DummyModel()
+                        self.encoder = torch.nn.Linear(DELTA_DIM, 128)
+                        self.decoder = torch.nn.Linear(128, 1)
+                    def forward(self, x):
+                        return self.decoder(torch.relu(self.encoder(x)))
+                model = RealisticModel()
                 apply_to_model(model, delta_vec)
-                print(f"Injected best Δ into DummyModel from {best['run_id']}")
+                print(f"Injected best Δ into RealisticModel from {best['run_id']}")
             except Exception as e:
                 print(f"[WARN] PyTorch injection failed: {e}")
         summaries.sort(key=evaluate_fitness, reverse=True)
