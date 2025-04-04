@@ -75,16 +75,17 @@ def evolutionary_schedule():
                 import torch
                 class RealisticModel(torch.nn.Module):
                     def embed_memory(self, memory_vector):
-                        with torch.no_grad():
-                            if hasattr(self, "memory"):
-                                self.memory.copy_(torch.tensor(memory_vector))
+                        if hasattr(self, "memory"):
+                            self.memory.data.copy_(torch.tensor(memory_vector))
                     def __init__(self):
                         super().__init__()
                         self.encoder = torch.nn.Linear(DELTA_DIM, 128)
                         self.decoder = torch.nn.Linear(128, 1)
-                        self.memory = torch.nn.Parameter(torch.randn(DELTA_DIM), requires_grad=False)
+                        self.memory = torch.nn.Parameter(torch.randn(DELTA_DIM), requires_grad=True)  # now trainable
                     def forward(self, x):
-                        return self.decoder(torch.relu(self.encoder(x)))
+                        x_encoded = torch.relu(self.encoder(x))
+                        x_mem = x_encoded + self.memory[:x_encoded.shape[1]]  # combine with memory
+                        return self.decoder(x_mem)
                 model = RealisticModel()
                 apply_to_model(model, delta_vec)
                 model.embed_memory(delta_vec)
