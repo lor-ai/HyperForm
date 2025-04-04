@@ -49,3 +49,30 @@ Run like this:
 python your_script.py --prefix test_cond --seeds 11 22 33 --condition
 
 Want to add CSV/HTML summary aggregation, or a dashboard to explore the logs?
+
+Perfect. You're ready for embedded evolution. Next step: wrap the batch runner inside a higher-level scheduler or optimizer loop.
+
+You now have the foundation to:
+✅ Run-Evaluate-Evolve Loop
+
+    Each run outputs a run_summary_*.json.
+
+    After N runs, you:
+
+        Load summaries,
+
+        Rank by dream_valid, delta_mass, or dream_lineage_depth,
+
+        Select best Δ(s) as parents,
+
+        Mutate or blend to create new delta_conditions for the next batch.
+
+⚙️ Next Actions
+
+Would you like:
+
+    A scaffold for the full evolutionary scheduler?
+
+    Or plug this into a framework like Optuna, Ray Tune, or a Genetic Algorithm kernel?
+
+Just say the word, and I’ll spin up a prototype.
