@@ -250,13 +250,18 @@ def batch_run(seed_list, run_prefix="hyperrun", delta_conditions=None):
         manifold.resonate()
 
         dream_seed = manifold.flows[-1]
-        dreamed_flow = manifold.dream(dream_seed)
+        dreamed_flow = None
+        max_attempts = 3
+        for depth in range(3, 3 + max_attempts):
+            dreamed_flow = manifold.dream(dream_seed, depth=depth)
+            if dreamed_flow:
+                break
 
         if dreamed_flow:
             print("Dream generated with sentiment:", dreamed_flow.spinor.similarity(delta.origin))
             print("Dream lineage depth:", len(dreamed_flow.lineage))
         else:
-            print("Dream collapsed: insufficient resonance")
+            print("Dream collapsed: insufficient resonance after multiple attempts")
 
         manifold.project_attractors(steps=3)
 
