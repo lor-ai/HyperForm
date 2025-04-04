@@ -1,6 +1,9 @@
 # ∇Δ — Modal Translation of Resonance as Code
 
-class Delta:
+import numpy as np
+from spinor import Spinor  # Ensure spinor module provides required methods
+
+class Delta: 
     """
     The seed of recursive unfolding. Not a point, but a principle of coherence.
     It evolves through recursive resonance, curvature, and spinor rotation.
@@ -71,3 +74,23 @@ class Manifold:
 
     def resonate(self):
         self.delta.rebase()
+
+
+# --- Simulation ---
+if __name__ == "__main__":
+    np.random.seed(42)
+    base_spinor = Spinor(np.random.randn(512))
+    delta = Delta(base_spinor)
+    manifold = Manifold(delta)
+
+    for _ in range(10):
+        random_spinor = Spinor(np.random.randn(512))
+        flow = ResonantFlow(random_spinor)
+        manifold.tick(flow)
+
+    manifold.resonate()
+
+    print("Delta mass:", delta.mass)
+    print("Delta origin (truncated):", delta.origin.vector[:5])
+    print("First flow sentiment:", manifold.flows[0].sentiment)
+    print("Last flow surprise:", manifold.flows[-1].surprise)
