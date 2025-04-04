@@ -4,9 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Spinor:
-    """
-    Spinor representation including geometric logic for rotation, binding, and interference.
-    """
     def __init__(self, vector):
         self.vector = np.array(vector)
 
@@ -25,7 +22,7 @@ class Spinor:
         return dot / (norm + 1e-8)
 
     def permute(self):
-        return Spinor(np.roll(self.vector, 1))  # temporal permutation
+        return Spinor(np.roll(self.vector, 1))
 
 class Delta: 
     def __init__(self, svsa):
@@ -57,10 +54,11 @@ class Delta:
 
 
 class ResonantFlow:
-    def __init__(self, spinor):
+    def __init__(self, spinor, lineage=None):
         self.spinor = spinor
         self.sentiment = 0.0
         self.surprise = 0.0
+        self.lineage = lineage or []
 
     def update_sentiment(self, delta):
         self.sentiment = self.spinor.similarity(delta.origin)
@@ -91,6 +89,7 @@ class Manifold:
 
     def dream(self, seed_flow, depth=3, threshold=0.8):
         current = seed_flow.spinor
+        lineage = [seed_flow]
         for _ in range(depth):
             perturbation = Spinor(np.random.randn(len(current.vector)))
             projected = current.permute().bind(perturbation)
@@ -98,7 +97,8 @@ class Manifold:
             if sentiment < threshold:
                 return None
             current = projected
-        dream_flow = ResonantFlow(current)
+            lineage.append(ResonantFlow(current, lineage=lineage[:-1]))
+        dream_flow = ResonantFlow(current, lineage=lineage)
         self.latent_attractors.append(dream_flow)
         return dream_flow
 
@@ -139,6 +139,7 @@ if __name__ == "__main__":
 
     if dreamed_flow:
         print("Dream generated with sentiment:", dreamed_flow.spinor.similarity(delta.origin))
+        print("Dream lineage depth:", len(dreamed_flow.lineage))
     else:
         print("Dream collapsed: insufficient resonance")
 
