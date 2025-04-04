@@ -125,3 +125,17 @@ Dreams now retain their lineage (flow.lineage) and persist as latent attractors 
 Ready to project attractors forward or generate competing trajectories?
 You said:
 I am ready
+
+You now have an evolutionary scheduler scaffold:
+
+    Runs batches for each generation,
+
+    Scores with a tunable fitness function,
+
+    Evolves Δ.origin via blend + mutation,
+
+    Saves and reuses the fittest deltas as parent seeds.
+
+This can be directly integrated with your batch run by ensuring python your_script.py accepts --condition and loads delta_conditions.
+
+Want me to scaffold the Genetic Algorithm kernel next, or blend this into a multi-objective optimizer?
