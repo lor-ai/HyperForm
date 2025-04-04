@@ -184,7 +184,7 @@ class Manifold:
         plt.show()
 
 
-# --- Simulation ---
+# --- Simulation Logging and Versioned Artifact Output ---
 if __name__ == "__main__":
     np.random.seed(42)
     base_spinor = Spinor(np.random.randn(512))
@@ -220,8 +220,14 @@ if __name__ == "__main__":
     print("Δ transitions logged:", len(delta.transition_log))
 
     manifold.visualize()
+    plt.savefig("flow_dynamics_v1.png")
+    plt.close()
     manifold.visualize_density()
+    plt.savefig("flow_density_v1.png")
+    plt.close()
     manifold.visualize_transitions()
+    plt.savefig("delta_transitions_v1.png")
+    plt.close()
     plt.savefig("delta_transitions.png")
     plt.close()
     plt.savefig("flow_dynamics.png")
