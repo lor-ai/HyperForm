@@ -223,7 +223,11 @@ import json
 import argparse
 
 
+import csv
+
 def batch_run(seed_list, run_prefix="hyperrun", delta_conditions=None):
+    summary_data = []
+
     for i, seed in enumerate(seed_list):
         run_id = f"{run_prefix}_{i:02d}"
         print(f"--- Starting batch run: {run_id} (seed={seed}) ---")
@@ -269,6 +273,7 @@ def batch_run(seed_list, run_prefix="hyperrun", delta_conditions=None):
         summary_path = os.path.join(log_dir, f"run_summary_{run_metadata['timestamp'].replace(':', '-')}.json")
         with open(summary_path, "w") as f:
             json.dump(run_metadata, f, indent=2)
+        summary_data.append(run_metadata)
 
         manifold.visualize()
         save_plot("flow_dynamics")
@@ -276,6 +281,15 @@ def batch_run(seed_list, run_prefix="hyperrun", delta_conditions=None):
         save_plot("flow_density")
         manifold.visualize_transitions()
         save_plot("delta_transitions")
+
+    # Save CSV summary
+    csv_path = os.path.join("run_logs", f"summary_{run_prefix}.csv")
+    with open(csv_path, "w", newline="") as csvfile:
+        fieldnames = list(summary_data[0].keys())
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(summary_data)
+    print(f"Batch summary saved to {csv_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
