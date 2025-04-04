@@ -125,6 +125,8 @@ def generate_dashboard(summaries, output="run_logs/dashboard.html"):
         f"<tr><td>{s['run_id']}</td><td>{s['dream_valid']}</td><td>{s['dream_lineage_depth']}</td><td>{s['delta_mass']:.2f}</td></tr>"
         for s in summaries
     )
+    mem_img = output.replace(".html", ".png").replace("dashboard_", "memory_projection_")
+    mem_embed_html = f'<h2>Δ Memory Embedding</h2><img src="{Path(mem_img).name}" width="600"/>' if Path(mem_img).exists() else ""
     html = f"""
     <html><head><title>Δ Evolution Dashboard</title></head><body>
     <h1>Δ Evolution Results</h1>
@@ -135,7 +137,7 @@ def generate_dashboard(summaries, output="run_logs/dashboard.html"):
         <tr><th>Run ID</th><th>Valid Dream</th><th>Lineage Depth</th><th>Δ Mass</th></tr>
         {rows}
     </table>
-    </body></html>
+    {mem_embed_html}</body></html>
     """
     Path(output).parent.mkdir(parents=True, exist_ok=True)
     with open(output, "w") as f:
