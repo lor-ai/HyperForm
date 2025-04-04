@@ -29,6 +29,7 @@ class Delta:
         self.origin = svsa
         self.history = []
         self.mass = 1.0
+        self.transition_log = []  # track origin transitions
 
     def rotate(self, spinor):
         projection = self.origin.rotate(spinor)
@@ -50,6 +51,7 @@ class Delta:
         if self.history:
             mean_vector = np.mean([s.vector for s in self.history], axis=0)
             self.origin = Spinor(mean_vector)
+            self.transition_log.append(self.origin)
             self.history.clear()
 
 
@@ -72,12 +74,14 @@ class Manifold:
         self.delta = delta
         self.flows = []
         self.latent_attractors = []
+        self.promoted = []
+        self.faded = []
 
     def tick(self, flow):
         flow.update_sentiment(self.delta)
         flow.update_surprise(self.delta)
         for attractor in self.latent_attractors:
-            flow.spinor = flow.spinor.bind(attractor.spinor)  # bias flow toward attractor
+            flow.spinor = flow.spinor.bind(attractor.spinor)
         self.delta.rotate(flow.spinor)
         self.flows.append(flow)
         if flow.surprise < 0.2:
@@ -114,11 +118,13 @@ class Manifold:
                 self.tick(flow)
                 lineage.append(flow)
                 current = projected
-            # Optionally rebase delta around strong attractors
             if attractor.sentiment > 0.9:
-                self.delta.origin = attractor.spinor  # promote to new Δ
+                self.promoted.append(attractor)
+                self.delta.origin = attractor.spinor
+                self.delta.transition_log.append(self.delta.origin)
             elif attractor.sentiment < 0.5:
-                self.latent_attractors.remove(attractor)  # fade out
+                self.faded.append(attractor)
+                self.latent_attractors.remove(attractor)
 
     def visualize(self):
         sentiments = [flow.sentiment for flow in self.flows]
@@ -168,4 +174,9 @@ if __name__ == "__main__":
     print("Last flow surprise:", manifold.flows[-1].surprise)
 
     manifold.project_attractors(steps=3)
+
+    print("Promoted attractors:", len(manifold.promoted))
+    print("Faded attractors:", len(manifold.faded))
+    print("Δ transitions logged:", len(delta.transition_log))
+
     manifold.visualize()
