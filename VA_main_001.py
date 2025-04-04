@@ -26,6 +26,17 @@ class Spinor:
         return Spinor(np.roll(self.vector, 1))
 
 class Delta: 
+    def get_weight_matrix(self):
+        return self.origin.vector.reshape(1, -1)  # or reshape for model injection
+
+    def save_weights(self, name="delta_weights"):
+        np.save(f"{name}.npy", self.origin.vector)
+
+    def condition(self, external_vector, weight=0.5):
+        blended = (1 - weight) * self.origin.vector + weight * np.array(external_vector)
+        self.origin = Spinor(blended)
+        self.transition_log.append(self.origin)
+
     def __init__(self, svsa):
         self.origin = svsa
         self.history = []
