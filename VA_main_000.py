@@ -195,6 +195,8 @@ def save_plot(prefix):
     plt.savefig(filename)
     plt.close()
 
+import json
+
 if __name__ == "__main__":
     np.random.seed(42)
     base_spinor = Spinor(np.random.randn(512))
@@ -228,6 +230,22 @@ if __name__ == "__main__":
     print("Promoted attractors:", len(manifold.promoted))
     print("Faded attractors:", len(manifold.faded))
     print("Δ transitions logged:", len(delta.transition_log))
+
+    # Export run metadata
+    run_metadata = {
+        "timestamp": datetime.now().isoformat(),
+        "delta_mass": delta.mass,
+        "num_flows": len(manifold.flows),
+        "num_attractors": len(manifold.latent_attractors),
+        "num_promoted": len(manifold.promoted),
+        "num_faded": len(manifold.faded),
+        "num_transitions": len(delta.transition_log),
+        "dream_lineage_depth": len(dreamed_flow.lineage) if dreamed_flow else 0,
+        "dream_valid": bool(dreamed_flow),
+    }
+    with open(f"run_summary_{run_metadata['timestamp'].replace(':', '-')}.json", "w") as f:
+        json.dump(run_metadata, f, indent=2)
+        print("Run summary saved.")
 
     manifold.visualize()
     save_plot("flow_dynamics")
