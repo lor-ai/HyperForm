@@ -184,7 +184,17 @@ class Manifold:
         plt.show()
 
 
+import os
+from datetime import datetime
+
 # --- Simulation Logging and Versioned Artifact Output ---
+def save_plot(prefix):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    version = len([f for f in os.listdir('.') if f.startswith(prefix)]) + 1
+    filename = f"{prefix}_v{version:02d}_{timestamp}.png"
+    plt.savefig(filename)
+    plt.close()
+
 if __name__ == "__main__":
     np.random.seed(42)
     base_spinor = Spinor(np.random.randn(512))
@@ -220,12 +230,15 @@ if __name__ == "__main__":
     print("Δ transitions logged:", len(delta.transition_log))
 
     manifold.visualize()
+    save_plot("flow_dynamics")
     plt.savefig("flow_dynamics_v1.png")
     plt.close()
     manifold.visualize_density()
+    save_plot("flow_density")
     plt.savefig("flow_density_v1.png")
     plt.close()
     manifold.visualize_transitions()
+    save_plot("delta_transitions")
     plt.savefig("delta_transitions_v1.png")
     plt.close()
     plt.savefig("delta_transitions.png")
