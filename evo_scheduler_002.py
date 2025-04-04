@@ -210,7 +210,7 @@ def plot_memory_embeddings(summaries, output="run_logs/memory_projection.png"):
             memory_vectors.append(np.load(vec_path))
             labels.append(s["run_id"])
     if len(memory_vectors) < 2:
-        return
+
         print("Not enough memory vectors to project.")
         return
     pca = PCA(n_components=2)
@@ -230,6 +230,17 @@ def plot_memory_embeddings(summaries, output="run_logs/memory_projection.png"):
 
 import argparse
 
+# Optional: PyTorch injection interface
+try:
+    import torch
+    def apply_to_model(model, delta_vector):
+        with torch.no_grad():
+            for name, param in model.named_parameters():
+                if param.data.ndim == 2 and param.shape[1] == DELTA_DIM:
+                    param.copy_(torch.tensor(delta_vector).reshape(1, -1).expand_as(param))
+                    break
+except ImportError:
+    print("PyTorch not available — skipping model injection helper.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -309,14 +320,3 @@ if __name__ == "__main__":
         parents = [np.load(f"run_logs/{s['run_id']}/delta_weights.npy") for s in top]
         current_vectors = evolve_population(parents)
 
-# Optional: PyTorch injection interface
-try:
-    import torch
-    def apply_to_model(model, delta_vector):
-        with torch.no_grad():
-            for name, param in model.named_parameters():
-                if param.data.ndim == 2 and param.shape[1] == DELTA_DIM:
-                    param.copy_(torch.tensor(delta_vector).reshape(1, -1).expand_as(param))
-                    break
-except ImportError:
-    print("PyTorch not available — skipping model injection helper.")
