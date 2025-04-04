@@ -157,3 +157,6 @@ Let me know if you'd like:
     A dashboard-style HTML viewer for GA results.
 
     Or merging GA with the previous evolutionary scheduler.
+
+
+python evolution_scheduler.py --gens 3 --pop 4 --animate --run_type full
