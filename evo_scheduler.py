@@ -65,6 +65,7 @@ def evolutionary_schedule():
 
         summaries = load_summaries(prefix)
         generate_dashboard(summaries, output=f"run_logs/dashboard_{prefix}.html")
+        plot_lineage_graph(summaries, output=f"run_logs/lineage_graph_{prefix}.png")
         # Launch top Δ into model injection if valid
         best = summaries[0]
         vec_path = Path("run_logs") / best["run_id"] / "delta_weights.npy"
@@ -129,6 +130,28 @@ def generate_dashboard(summaries, output="run_logs/dashboard.html"):
     with open(output, "w") as f:
         f.write(html)
     print(f"Dashboard written to {output}")
+
+import networkx as nx
+import matplotlib.pyplot as plt
+
+def plot_lineage_graph(summaries, output="run_logs/lineage_graph.png"):
+    G = nx.DiGraph()
+    for i, s in enumerate(summaries):
+        run_id = s.get("run_id", f"run_{i}")
+        G.add_node(run_id, label=f"Δ mass: {s.get('delta_mass', 0):.2f}")
+        if i > 0:
+            G.add_edge(summaries[i - 1].get("run_id", f"run_{i - 1}"), run_id)
+    pos = nx.spring_layout(G, seed=42)
+    plt.figure(figsize=(8, 6))
+    nx.draw(G, pos, with_labels=True, node_size=700, node_color="skyblue", font_size=8)
+    labels = nx.get_node_attributes(G, 'label')
+    for key, val in pos.items():
+        plt.text(val[0], val[1] + 0.05, labels[key], horizontalalignment='center', fontsize=7)
+    plt.title("Δ Lineage Graph")
+    plt.tight_layout()
+    plt.savefig(output)
+    plt.close()
+    print(f"Lineage graph saved to {output}")
 
 if __name__ == "__main__":
     evolutionary_schedule()
