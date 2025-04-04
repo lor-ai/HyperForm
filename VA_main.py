@@ -2,7 +2,28 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from spinor import Spinor  # Ensure spinor module provides required methods
+
+class Spinor:
+    """
+    Simplified Spinor representation for demonstration purposes.
+    Encodes high-dimensional rotation, binding, and similarity operations.
+    """
+    def __init__(self, vector):
+        self.vector = np.array(vector)
+
+    def rotate(self, other):
+        return Spinor(self.vector * other.vector)  # elementwise modulation
+
+    def bind(self, other):
+        return Spinor(self.vector * other.vector)  # alias for rotation/binding
+
+    def invert(self):
+        return Spinor(1.0 / (self.vector + 1e-8))  # avoid div by zero
+
+    def similarity(self, other):
+        dot = np.dot(self.vector, other.vector)
+        norm = np.linalg.norm(self.vector) * np.linalg.norm(other.vector)
+        return dot / (norm + 1e-8)
 
 class Delta: 
     """
