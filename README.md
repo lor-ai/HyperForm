@@ -35,6 +35,10 @@ HyperForm is an evolving experimental AI framework designed to simulate, track, 
 ## 🚀 Usage
 
 ```bash
+python evolution_scheduler.py --dryrun
+```
+
+```bash
 python evolution_scheduler.py --gens 5 --pop 4 --animate
 ```
 
